@@ -1,3 +1,6 @@
+
+#include "./hiredis/hiredis.h"
+
 char *vfs_listUnixStyle(redisContext *context, long dirId);
 
 long vfs_createFile(redisContext *context, long parentId, char *name, long size,
