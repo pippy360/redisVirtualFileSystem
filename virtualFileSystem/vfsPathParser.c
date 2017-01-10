@@ -90,7 +90,7 @@ long getLengthOfNextName(char *remainingPath, long remainingPathLength){
 }
 
 //will follow the string until the last '/' and will ignore any characters after that
-long vfs_getDirIdFromPath(redisContext *context, long userCwd, char *path,
+long vfs_getDirIdFromPath(redisContext *context, long userCwd, const char *path,
 		int pathLength) {
 	printf("the path length %d\n", pathLength);
 	char *currPtr = path, *nameStart;
@@ -129,7 +129,7 @@ long vfs_getDirIdFromPath(redisContext *context, long userCwd, char *path,
 
 //takes in an empty vfsPathParserState_t
 int vfs_parsePath(redisContext *context, vfsPathParserState_t *parserState,
-		char *fullPath, int fullPathLength, long clientCwd) {
+		const char *fullPath, int fullPathLength, long clientCwd) {
 
 	//FIXME: handle 0 strings
 	if (fullPathLength <= 0) {
