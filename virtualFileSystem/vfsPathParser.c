@@ -32,12 +32,12 @@ void init_vfsPathParserState(vfsPathParserState_t *parserState) {
 
 //finds parserState->namePtr
 //returns 0 if success, non-0 otherwise
-int vfs_serperatePathAndName(vfsPathParserState_t *parserState,
-		char *fullFilePath, int fullFilePathLength) {
+int vfs_seperatePathAndName(vfsPathParserState_t *parserState,
+		const char *fullFilePath, int fullFilePathLength) {
 
 	int i = 0;
 	int containsFileName; //boolean, does it end in a '/' or a file name
-	char *currPos = fullFilePath + fullFilePathLength - 1;
+	const char *currPos = fullFilePath + fullFilePathLength - 1;
 
 	for (i = 0; currPos >= fullFilePath && *currPos != '/'; i++) {
 		currPos--;
@@ -58,7 +58,7 @@ int vfs_serperatePathAndName(vfsPathParserState_t *parserState,
 //returns 0 if success, non-0 otherwise
 //works for '.' and '..'
 int vfs_findObjectInDir(redisContext *context,
-		vfsPathParserState_t *parserState, long dirId, char *name,
+		vfsPathParserState_t *parserState, long dirId, const char *name,
 		int nameLength) {
 	long resultId;
 	int isFile = 0, isDir = 0;
@@ -81,7 +81,7 @@ int vfs_findObjectInDir(redisContext *context,
 	return 0;
 }
 
-long getLengthOfNextName(char *remainingPath, long remainingPathLength){
+long getLengthOfNextName(const char *remainingPath, long remainingPathLength){
 	int i;
 	for (i = 0; i < remainingPathLength && remainingPath[i] != '/'; i++) {
 		;
@@ -92,8 +92,9 @@ long getLengthOfNextName(char *remainingPath, long remainingPathLength){
 //will follow the string until the last '/' and will ignore any characters after that
 long vfs_getDirIdFromPath(redisContext *context, long userCwd, const char *path,
 		int pathLength) {
-	printf("the path length %d\n", pathLength);
-	char *currPtr = path, *nameStart;
+	//printf("the path length %d\n", pathLength);
+	const char *currPtr = path;
+	const char *nameStart;
 	int result;
 	long currDir = userCwd;
 	vfsPathParserState_t parserState;
@@ -116,9 +117,9 @@ long vfs_getDirIdFromPath(redisContext *context, long userCwd, const char *path,
 
 		result = vfs_findObjectInDir(context, &parserState, currDir, nameStart,
 				lengthOfNextName);
-		printf("the current name of the folder we're processing %lu %.*s\n", lengthOfNextName, (int)lengthOfNextName, nameStart);
+		//printf("the current name of the folder we're processing %lu %.*s\n", lengthOfNextName, (int)lengthOfNextName, nameStart);
 		if (result != 0 || parserState.id == -1 || !parserState.isDir) {
-			printf("invalid path, one of the tokens was not a directory\n");
+			//printf("invalid path, one of the tokens was not a directory\n");
 			return -1;
 		}
 		currDir = parserState.id;
@@ -137,7 +138,7 @@ int vfs_parsePath(redisContext *context, vfsPathParserState_t *parserState,
 		return -1;
 	}
 
-	printf("the path: --%s--\n", fullPath);
+	//printf("the path: --%s--\n", fullPath);
 
 	long cwd = (*fullPath == '/') ? ROOT_FOLDER_ID : clientCwd; //if it's not a relative path set CWD to ROOT_FOLDER_ID
 	long tempId;
@@ -146,25 +147,6 @@ int vfs_parsePath(redisContext *context, vfsPathParserState_t *parserState,
 
 	//wipe the parsing state
 	init_vfsPathParserState(parserState);
-
-	//preprocess string
-	//TODO: remove all the extra '///////'
-
-	/*
-	 //remove all the './'
-	 formattedPath = malloc(fullPathLength+1);//FIXME: it's a pain to free this with all the return functions we have!
-	 *formattedPath = '\0';
-	 tempPathPtr = formattedPath;
-	 for(i = 0; i+1 < fullPathLength; i++){
-	 if(strncmp(fullPath+i, "./", 2) == 0){
-	 i += 1;
-	 }else{
-	 sprintf(tempPathPtr, "%c", *(fullPath+i));
-	 tempPathPtr++;
-	 }
-	 }
-	 printf("the formatted path: --%s--\n", formattedPath);
-	 */
 
 	//remove the last '/' if it has one
 	isLastCharSlash = (*(fullPath + fullPathLength - 1) == '/');
@@ -186,27 +168,24 @@ int vfs_parsePath(redisContext *context, vfsPathParserState_t *parserState,
 	//get all characters after the last '/',
 	//After preprocessing and checking if root there will always be characters in the name
 	//the name could be ".."
-	if (vfs_serperatePathAndName(parserState, fullPath, fixedPathLength) != 0) {
+	if (vfs_seperatePathAndName(parserState, fullPath, fixedPathLength) != 0) {
 		printf("failed to get the last part of path, stuff after last '/'\n");
+		return -1;
 	}
 
 	if ((tempId = vfs_getDirIdFromPath(context, cwd, fullPath, fixedPathLength))
 			== -1) {
-		printf("failed to get the get parent id\n");
+		printf("failed to get the parent id for path: %s\n", fullPath);
 		return -1;
 	}
 
 	if (parserState->nameLength > 0) {
-		printf("testing the name %.*s\n", parserState->nameLength, fullPath + parserState->nameOffset);
 		if (vfs_findObjectInDir(context, parserState, tempId,
 				fullPath + parserState->nameOffset, parserState->nameLength)
 				!= 0) {
-			printf("failed to find in directory\n");
-			//REMOVE:
-			printf("about to test the existing object\n");
+			//failed to find in directory so we will now set it's isExistingObject to false
 			parserState->isExistingObject = 0;
 			parserState->parentId = tempId;
-			printf("got it existing object\n");
 		} else {
 			parserState->isExistingObject = 1;
 			if (parserState->isFilePath == 1)

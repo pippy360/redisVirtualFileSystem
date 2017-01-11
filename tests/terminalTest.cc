@@ -16,6 +16,7 @@ typedef enum command_t {
     command_cd,
     command_ls,
     command_mv,
+    command_mkdir,
     command_invalid
 } command_t;
 
@@ -32,6 +33,8 @@ command_t commandToEnum(string str)
         return command_ls;
     }else if(strcmp(str.c_str(), "mv") == 0){
         return command_mv;
+    }else if(strcmp(str.c_str(), "mkdir") == 0){
+        return command_mkdir;
     }
     return command_invalid;
 }
@@ -53,33 +56,49 @@ vector<string> split(const string& str, const string& delim)
     return tokens;
 }
 
-void handleCommand(vfs::FsContext c, vector<string> strs){
+void handleCommand(vfs::FsContext &c, vector<string> strs){
     command_t v = commandToEnum(strs[0]);
     switch(v)
     {
         case command_cp:
             if (strs.size() < 3){
                 printf("invalid cp!\n");
+                return;         
             }
             cout << "copy from: " << strs[1] << " to: " << strs[2] << endl;
             break;
         case command_cd:
             if (strs.size() < 2)
             {
-                cout << "invalid cd args" << endl;                
+                cout << "invalid cd args" << endl;
+                return;         
             }
 
             if ( !vfs::cd(c, strs[1]) )
             {
-                cout << "invalid cd" << endl;                
+                cout << "invalid cd" << endl;
+                return;         
             }
-            cout << vfs::pwd(c) << endl;            
-            break;            
+            cout << vfs::pwd(c) << endl;
+            break;
         case command_pwd:
-            cout << vfs::pwd(c) << endl;            
+            cout << vfs::pwd(c) << endl;
             break;
         case command_ls:
             cout << vfs::lsPrettyPrint(c) << endl;
+            break;
+        case command_mkdir:
+            if (strs.size() < 2)
+            {
+                cout << "invalid cd args" << endl;
+                return;
+            }
+
+            if ( !vfs::mkdir(c, strs[1]) )
+            {
+                cout << "failed to mkdir" << endl;
+                return;
+            }
             break;
         default:
             printf("invalid command!\n");
