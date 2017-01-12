@@ -157,28 +157,35 @@ FsContext getInitialContext()
     return context;
 }
 
-string lsPrettyPrint(FsContext &context)
+vector<File> getFiles(FsContext &context, const string path)
 {
-    return "prettyPrint";
-}
+    //get a list of ids
 
-vector<File> listFiles(FsContext &context, const string path)
-{
-    long cwdId = getFolderIdFromAbsolutePath(context, path);     
-    vfsPathParserState_t parserState;
-    if( vfs_parsePath(&(context.context), &parserState, path.c_str(), path.size(), cwdId) == -1){
-        return vector<File>();//FIXME: throw error
-    }
-    if (parserState.isDir)
-    {
-        vfs_ls(&(context.context), parserState.id);
-    }
+    //get a folder for id
+
     return vector<File>();
 }
 
-vector<Folder> listFolders(FsContext &context, const string fullPath)
+vector<Folder> getFolders(FsContext &context, const string fullPath)
 {
-    return vector<Folder>();
+    long id = getFolderIdFromPath(context, fullPath);
+    return redis_getFolders(&(context.context), id);
+}
+
+string lsPrettyPrint(FsContext &context, const string path)
+{
+    string output;
+    auto files = getFiles(context, path);
+    auto folders = getFolders(context, path);
+    for (auto folder: folders)
+    {
+        output += folder.name + "\n";
+    }
+    for (auto file: files)
+    {
+        output += file.name + "\n";
+    }
+    return output;
 }
 
 string pwd(FsContext &context)

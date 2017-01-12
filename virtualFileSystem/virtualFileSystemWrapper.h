@@ -33,7 +33,7 @@ public:
 
 FsContext getInitialContext();
 
-string lsPrettyPrint(FsContext &context);
+string lsPrettyPrint(FsContext &context, const string path);
 
 vector<File> listFiles(FsContext &context, const string fullPath);
 

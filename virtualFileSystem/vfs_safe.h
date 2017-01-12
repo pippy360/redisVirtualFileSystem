@@ -16,7 +16,7 @@
 #include <signal.h>
 #include <string>
 #include <stdlib.h>
-
+#include <vector>
 
 #include "./hiredis/hiredis.h"
 
@@ -38,6 +38,10 @@ long redis_getFolderParentId(redisContext *context, long cwdId);
 void redis_setFolderParent(redisContext *context, long dirId, long newParent);
 
 string redis_ls(redisContext *context, long dirId);
+
+vector<Folder> redis_getFolders(redisContext *context, long id);
+
+vector<File> redis_getFiles(redisContext *context, long id);
 
 }
 

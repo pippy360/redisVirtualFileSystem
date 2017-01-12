@@ -8,4 +8,4 @@ vfsPathParser.o: ../virtualFileSystem/vfsPathParser.c
 	gcc -g -O0 -c ../virtualFileSystem/vfsPathParser.c
 
 vfs_safe.o: ../virtualFileSystem/vfs_safe.cc
-	gcc -g -O0 -c ../virtualFileSystem/vfs_safe.cc
+	g++ --std=c++11 -g -O0 -c ../virtualFileSystem/vfs_safe.cc

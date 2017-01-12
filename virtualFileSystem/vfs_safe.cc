@@ -13,7 +13,8 @@
 #include <signal.h>
 #include <string>
 #include <stdlib.h>
-
+#include <vector>
+#include "virtualFileSystemWrapper.h"
 
 #include "./hiredis/hiredis.h"
 
@@ -31,6 +32,22 @@ string redis_getFileName(redisContext *context, long id) {
 
 	freeReplyObject(reply);
     return output;
+}
+
+long redis_getFolderParentId(redisContext *context, long cwdId) {
+	redisReply *reply;
+	reply = (redisReply *) redisCommand(context, "HGET FOLDER_%lu_info parent", cwdId);
+	long newId = strtol(reply->str, NULL, 10);
+	freeReplyObject(reply);
+	return newId;
+}
+
+long redis_getFileParentId(redisContext *context, long cwdId) {
+	redisReply *reply;
+	reply = (redisReply *) redisCommand(context, "HGET FILE_%lu_info parent", cwdId);
+	long newId = strtol(reply->str, NULL, 10);
+	freeReplyObject(reply);
+	return newId;
 }
 
 //FIXME: FIXME: temporary fix here, change APIURL TO WEBURL
@@ -54,6 +71,36 @@ long redis_getFileSizeFromId(redisContext *context, long id) {
 	return size;
 }
 
+vector<long> redis_getFolderIds(redisContext *context, long id) {
+	vector<long> ret;
+	redisReply *reply;
+	long tempId;
+	int i = 0;
+	reply = (redisReply *) redisCommand(context, "LRANGE FOLDER_%lu_folders 0 -1", id);
+	if (reply->type == REDIS_REPLY_ARRAY) {
+		for (i = 0; i < reply->elements; i++) {
+			tempId = strtol(reply->element[i]->str, NULL, 10);
+			ret.push_back(tempId);
+		}
+	}
+	return ret;
+}
+
+vector<long> redis_getFileIds(redisContext *context, long id) {
+	vector<long> ret;
+	redisReply *reply;
+	long tempId;
+	int i = 0;
+	reply = (redisReply *) redisCommand(context, "LRANGE FOLDER_%lu_files 0 -1", id);
+	if (reply->type == REDIS_REPLY_ARRAY) {
+		for (i = 0; i < reply->elements; i++) {
+			tempId = strtol(reply->element[i]->str, NULL, 10);
+			ret.push_back(tempId);
+		}
+	}
+	return ret;
+}
+
 //^see get file name
 string redis_getFolderName(redisContext *context, long id) {
 	redisReply *reply;
@@ -65,45 +112,46 @@ string redis_getFolderName(redisContext *context, long id) {
     return output.substr(1, output.size()-2);
 }
 
-//this only works with folders for the moment
-long redis_getFolderParentId(redisContext *context, long cwdId) {
-	redisReply *reply;
-	reply = (redisReply *) redisCommand(context, "HGET FOLDER_%lu_info parent", cwdId);
-	//printf("the command we ran HGET FOLDER_%lu_info parent\n", cwdId);
-	long newId = strtol(reply->str, NULL, 10);
-	freeReplyObject(reply);
-	//printf("the result %ld\n", newId);
-	return newId;
+Folder redis_getFolder(redisContext *context, long id) {
+	Folder ret;
+	ret.id = id;
+	ret.name = redis_getFolderName(context, id);
+	ret.parentId = redis_getFolderParentId(context, id);
+	return ret;
+}
+
+vector<Folder> redis_getFolders(redisContext *context, long id) {
+	vector<Folder> output;
+	auto ids = redis_getFolderIds(context, id);
+	for (auto id: ids)
+	{
+		output.push_back( redis_getFolder(context, id) );
+	}
+	return output;
+}
+
+File redis_getFile(redisContext *context, long id) {
+	File ret;
+	ret.id = id;
+	ret.name = redis_getFileName(context, id);
+	ret.parentId = redis_getFileParentId(context, id);
+	return ret;
+}
+
+vector<File> redis_getFiles(redisContext *context, long id) {
+	vector<File> output;
+	auto ids = redis_getFileIds(context, id);
+	for (auto id: ids)
+	{
+		output.push_back( redis_getFile(context, id) );
+	}
+	return output;
 }
 
 void redis_setFolderParent(redisContext *context, long dirId, long newParent) {
 	redisReply *reply;
 	reply = (redisReply *) redisCommand(context, "HSET FOLDER_%lu_info parent %ld", dirId,
 			newParent);
-	freeReplyObject(reply);
-}
-
-string redis_ls(redisContext *context, long dirId) {
-	int j = 0;
-	long id;
-	redisReply *reply;
-	reply = (redisReply *) redisCommand(context, "LRANGE FOLDER_%lu_folders 0 -1", dirId);
-	if (reply->type == REDIS_REPLY_ARRAY) {
-		for (j = 0; j < reply->elements; j++) {
-			id = strtol(reply->element[j]->str, NULL, 10);
-			// redis_getFolderName(context, id, name, MAX_FILENAME_SIZE);
-			// printf("ls: %s\n", name);
-		}
-	}
-	freeReplyObject(reply);
-	reply = (redisReply *) redisCommand(context, "LRANGE FOLDER_%lu_files   0 -1", dirId);
-	if (reply->type == REDIS_REPLY_ARRAY) {
-		for (j = 0; j < reply->elements; j++) {
-			long id = strtol(reply->element[j]->str, NULL, 10);
-			// redis_getFileName(context, id, name, MAX_FILENAME_SIZE);
-			// printf("ls: %s\n", name);
-		}
-	}
 	freeReplyObject(reply);
 }
 

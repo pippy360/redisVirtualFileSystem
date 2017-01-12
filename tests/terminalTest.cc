@@ -85,7 +85,12 @@ void handleCommand(vfs::FsContext &c, vector<string> strs){
             cout << vfs::pwd(c) << endl;
             break;
         case command_ls:
-            cout << vfs::lsPrettyPrint(c) << endl;
+            if (strs.size() < 2)
+            {
+                cout << vfs::lsPrettyPrint(c, c.cwd) << endl;
+            }else{
+                cout << vfs::lsPrettyPrint(c, strs[1]) << endl;
+            }
             break;
         case command_mkdir:
             if (strs.size() < 2)
