@@ -115,18 +115,14 @@ long getParentIdOfLeftSideOfExpression(FsContext &context, const string initialP
 string formatToValidPath(FsContext &context, const string initialPath)
 {
     long parentId = getParentIdOfLeftSideOfExpression(context, initialPath);
-    cout << "formatter, parentid: " << parentId << endl;
     if (parentId == -1)
     {
         throw "failed to get left side of expression";
     }
 
     string leftSide = getAbsolutePathFromFolderId(context, parentId);
-    cout << "formatter, leftSide: " << leftSide << endl;
     
     string rightSide = removeAnyPathPrefix(initialPath);
-
-    cout << "formatter, rightSize: " << rightSide << endl;
 
     return leftSide + rightSide;
 }
@@ -190,6 +186,7 @@ string pwd(FsContext &context)
     return context.cwd;
 }
 
+//PUBLIC
 bool mkdir(FsContext &context, const string initPath)
 {
     string formattedPath = formatToValidPath(context, initPath);
@@ -210,10 +207,6 @@ bool cd(FsContext &context, const string path)
 {
     string formattedPath = formatToValidPath(context, path);
     
-    //DEBUG
-    cout << "CD formattedPath: " << formattedPath << endl;
-    //DEBUG
-
     //check if it exists and it's a valid Folder
     long folderId = -1;
     if( (folderId = getFolderIdFromPath(context, formattedPath)) == -1 ){
