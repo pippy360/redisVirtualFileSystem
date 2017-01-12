@@ -43,6 +43,8 @@ string pwd(FsContext &context);
 
 bool mkdir(FsContext &context, const string fullPath);
 
+bool createFile(FsContext &context, const string fullPath);
+
 bool cd(FsContext &context, const string fullPath);
 
 }

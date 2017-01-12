@@ -17,6 +17,7 @@ typedef enum command_t {
     command_ls,
     command_mv,
     command_mkdir,
+    command_mkfile,
     command_invalid
 } command_t;
 
@@ -35,6 +36,8 @@ command_t commandToEnum(string str)
         return command_mv;
     }else if(strcmp(str.c_str(), "mkdir") == 0){
         return command_mkdir;
+    }else if(strcmp(str.c_str(), "mkfile") == 0){
+        return command_mkfile;
     }
     return command_invalid;
 }
@@ -95,13 +98,26 @@ void handleCommand(vfs::FsContext &c, vector<string> strs){
         case command_mkdir:
             if (strs.size() < 2)
             {
-                cout << "invalid cd args" << endl;
+                cout << "invalid mkdir args" << endl;
                 return;
             }
 
             if ( !vfs::mkdir(c, strs[1]) )
             {
                 cout << "failed to mkdir" << endl;
+                return;
+            }
+            break;
+        case command_mkfile:
+            if (strs.size() < 2)
+            {
+                cout << "invalid mkfile args" << endl;
+                return;
+            }
+
+            if ( !vfs::createFile(c, strs[1]) )
+            {
+                cout << "failed to mkfile" << endl;
                 return;
             }
             break;

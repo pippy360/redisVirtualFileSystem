@@ -107,8 +107,8 @@ void __removeIdFromFolderList(redisContext *context, long dirId, long removeId) 
 	freeReplyObject(reply);
 }
 
-long vfs_createFile(redisContext *context, long parentId, char *name, long size,
-		char *googleId, char *webUrl, char *apiUrl) {
+long vfs_createFile(redisContext *context, long parentId, const char *name, long size,
+		const char *googleId, const char *webUrl, const char *apiUrl) {
 	//add it to the file list of the dir
 	long id = getNewId(context);
 	__addFileToFileList(context, parentId, id);

@@ -42,13 +42,18 @@ long getDirIdFromPath(FsContext &context, long cwd, const string path){
 
 long getFolderIdFromAbsolutePath(FsContext &context, const string absolutePath)
 {
-    //assert first character is '/'
+    //assert: first character MUST BE '/'
     return getDirIdFromPath(context, ROOT_FOLDER_ID, absolutePath);
+}
+
+long getCwdId(FsContext &context)
+{
+    return getFolderIdFromAbsolutePath(context, context.cwd);
 }
 
 long getFolderIdFromPath(FsContext &context, const string path)
 {
-    long cwd = getFolderIdFromAbsolutePath(context, path);
+    long cwd = getCwdId(context);
     return getDirIdFromPath(context, cwd, path);
 }
 
@@ -198,7 +203,7 @@ bool mkdir(FsContext &context, const string initPath)
 {
     string formattedPath = formatToValidPath(context, initPath);
     
-    long cwdId = getFolderIdFromAbsolutePath(context, formattedPath);
+    long cwdId = getCwdId(context);
     vfsPathParserState_t parserState;
     if( vfs_parsePath(&(context.context), &parserState, formattedPath.c_str(), formattedPath.size(), cwdId) == -1){
         return false;
@@ -221,6 +226,23 @@ bool cd(FsContext &context, const string path)
     }
 
     context.cwd = getAbsolutePathFromFolderId(context, folderId);
+    return true;
+}
+
+bool createFile(FsContext &context, const string path)
+{
+    string formattedPath = formatToValidPath(context, path);
+
+    long cwdId = getCwdId(context);
+    vfsPathParserState_t parserState;
+    if( vfs_parsePath(&(context.context), &parserState, formattedPath.c_str(), formattedPath.size(), cwdId) == -1) {
+        return false;
+    }
+    //if( vfs_mkdir(&(context.context), parserState.parentId, formattedPath.c_str() + parserState.nameOffset) == -1) {
+    if( vfs_createFile(&(context.context), parserState.parentId, formattedPath.c_str() + parserState.nameOffset, 1, "none", "https://none.com", "http://none") == -1)
+    {
+        cout << "mkdir failed when calling redis command" << endl;
+    }
     return true;
 }
 
