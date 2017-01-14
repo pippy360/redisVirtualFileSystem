@@ -1,0 +1,1 @@
+g++ -Wall ./obj/examplefs.o ./obj/main.o ./obj/wrap.o -L/usr/lib/x86_64-linux-gnu -lfuse -pthread -o myfs

@@ -1,6 +1,6 @@
 
 CFLAGS = -Wall -DFUSE_USE_VERSION=26 `pkg-config fuse --cflags`
-LINKFLAGS = -Wall `pkg-config libfuse-dev --libs`
+LINKFLAGS = -Wall `pkg-config fuse --libs`
 
 all: bin/examplefs
 
@@ -10,14 +10,17 @@ clean:
 bin: 
 	mkdir -p bin
 
-bin/examplefs: bin obj/examplefs.o obj/wrap.o obj/main.o
-	g++ -g $(LINKFLAGS) -o bin/examplefs obj/*
+bin/examplefs: bin obj/redisfs.o obj/examplefs.o obj/wrap.o obj/main.o
+	g++ -std=c++11 -g -lfuse $(LINKFLAGS) -o bin/examplefs obj/* ../virtualFileSystem/virtualFileSystemWrapper.cc  ../tests/*.o ../virtualFileSystem/hiredis/*.o -lfuse -lboost_system
 
 obj:
 	mkdir -p obj
 
 obj/examplefs.o: obj examplefs.cc examplefs.hh
 	g++ -g $(CFLAGS) -c examplefs.cc -o obj/examplefs.o
+
+obj/redisfs.o: obj redisfs.cc redisfs.hpp
+	g++ -g $(CFLAGS) -c redisfs.cc -o obj/redisfs.o
 
 obj/main.o: obj main.c wrap.hh
 	gcc -g $(CFLAGS) -c main.c -o obj/main.o

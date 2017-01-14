@@ -137,9 +137,7 @@ FsContext getInitialContext()
     FsContext context;
     context.cwd = "/";
 
-    unsigned int j;
 	redisContext *c;
-	redisReply *reply;
 	const char *hostname = "127.0.0.1";
 	int port = 6379;
 
@@ -157,7 +155,7 @@ FsContext getInitialContext()
 
 	printf("building the database\n");
 	;
-	vfs_buildDatabase(c);
+	//vfs_buildDatabase(c);
     context.context = *c;
     return context;
 }
@@ -244,6 +242,11 @@ bool createFile(FsContext &context, const string path)
         cout << "mkdir failed when calling redis command" << endl;
     }
     return true;
+}
+
+bool mv(FsContext &context, const string oldPath, const string newPath)
+{
+    return false;
 }
 
 }

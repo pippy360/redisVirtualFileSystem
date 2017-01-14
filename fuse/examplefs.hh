@@ -15,6 +15,8 @@
 #include <sys/types.h>
 #include <sys/xattr.h>
 
+#include <boost/filesystem.hpp>
+
 class ExampleFS {
 private: 
 	const char *_root;

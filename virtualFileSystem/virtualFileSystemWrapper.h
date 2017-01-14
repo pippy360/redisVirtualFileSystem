@@ -47,6 +47,8 @@ bool createFile(FsContext &context, const string fullPath);
 
 bool cd(FsContext &context, const string fullPath);
 
+bool mv(FsContext &context, const string oldPath, const string newPath);
+
 }
 
 #endif /* VIRTUALFILESYSTEM_H */
