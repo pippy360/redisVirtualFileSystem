@@ -310,6 +310,11 @@ vector<string> ls(FsContext &context, long dirId){
     return ret;
 }
 
+vector<string> ls(FsContext &context, const string path){
+    long id = getFolderIdFromPath(context, path);
+    return ls(context, id);
+}
+
 dirItemInfo getDirItemInfo(FsContext &context, const string absolutePath){
 
     dirItemInfo ret;

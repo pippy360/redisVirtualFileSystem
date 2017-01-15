@@ -6,7 +6,6 @@
 struct fuse_operations examplefs_oper;
 
 int main(int argc, char *argv[]) {
-	int i, fuse_stat;
 
 	examplefs_oper.getattr = wrap_getattr;
 	examplefs_oper.readlink = wrap_readlink;
@@ -40,22 +39,10 @@ int main(int argc, char *argv[]) {
 	examplefs_oper.init = wrap_init;
 
 	printf("mounting file system...\n");
-	
-	for(i = 1; i < argc && (argv[i][0] == '-'); i++) {
-		if(i == argc) {
-			return (-1);
-		}
-	}
+	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+	int fuse_stat;
+	fuse_stat = fuse_main(args.argc, args.argv, &examplefs_oper, NULL);
 
-	//realpath(...) returns the canonicalized absolute pathname
-	set_rootdir(realpath(argv[i], NULL));
-
-	for(; i < argc; i++) {
-		argv[i] = argv[i+1];
-	}
-	argc--;
-
-	fuse_stat = fuse_main(argc, argv, &examplefs_oper, NULL);
 
 	printf("fuse_main returned %d\n", fuse_stat);
 

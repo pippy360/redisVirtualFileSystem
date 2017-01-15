@@ -92,6 +92,8 @@ bool mv(FsContext &context, const string oldPath, const string newPath);
 
 dirItemInfo stat(FsContext &context, const string absolutePath);
 
+vector<string> ls(FsContext &context, const string path);
+
 }
 
 #endif /* VIRTUALFILESYSTEM_H */

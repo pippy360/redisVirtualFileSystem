@@ -24,15 +24,11 @@ private:
 
 	static RedisFs *_instance;
 
-	void AbsPath(char dest[PATH_MAX], const char *path);
-
 public:
 	static RedisFs *Instance();
 
 	RedisFs();
 	~RedisFs();
-
-	void setRootDir(const char *path);
 
 	int Getattr(    const char *path, struct stat *statbuf);
 	int Readlink(   const char *path, char *link, size_t size);

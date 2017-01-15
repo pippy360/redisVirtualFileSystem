@@ -1,10 +1,6 @@
 #include "wrap.hh"
 #include "redisfs.hpp"
 
-void set_rootdir(const char *path) {
-	RedisFs::Instance()->setRootDir(path);
-}
-
 int wrap_getattr(const char *path, struct stat *statbuf) {
 	return RedisFs::Instance()->Getattr(path, statbuf);
 }
