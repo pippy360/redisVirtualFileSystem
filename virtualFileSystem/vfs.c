@@ -69,8 +69,8 @@ long vfs_mkdir(redisContext *context, long parentId, const char *name) {
 	return id;
 }
 
-void __createFile(redisContext *context, long id, char *name, long size,
-		char *googleId, char *webUrl, char *apiUrl) {
+void __createFile(redisContext *context, long id, const char *name, long size,
+		const char *googleId, const char *webUrl, const char *apiUrl) {
 	redisReply *reply;
 	reply =
 			redisCommand(context,
@@ -245,7 +245,7 @@ void vfs_ls(redisContext *context, long dirId) {
 }
 
 //return's id if successful, -1 otherwise
-long vfs_findFileNameInDir(redisContext *context, long dirId, char *fileName,
+long vfs_findFileNameInDir(redisContext *context, long dirId, const char *fileName,
 		int fileNameLength) {
 	long tempId, matchId = -1;
 	int i;
@@ -256,7 +256,8 @@ long vfs_findFileNameInDir(redisContext *context, long dirId, char *fileName,
 		for (i = 0; i < reply->elements; i++) {
 			tempId = strtol(reply->element[i]->str, NULL, 10);
 			vfs_getFileName(context, tempId, nameBuffer, MAX_FILENAME_SIZE);
-			if (strncmp(fileName, nameBuffer, fileNameLength) == 0) {
+			int length = (fileNameLength > strlen(nameBuffer))? fileNameLength: strlen(nameBuffer);
+			if (strncmp(fileName, nameBuffer, length) == 0) {
 				matchId = tempId;
 			}
 		}
@@ -285,8 +286,10 @@ long vfs_findDirNameInDir(redisContext *context, long dirId, char *dirName,
 		for (i = 0; i < reply->elements; i++) {
 			tempId = strtol(reply->element[i]->str, NULL, 10);
 			vfs_getFolderName(context, tempId, nameBuffer, MAX_FILENAME_SIZE);
+			// printf("comparing against: %s , %s\n", nameBuffer, dirName);
 			if (strncmp(dirName, nameBuffer, dirNameLength) == 0) {
 				matchId = tempId;
+				break;
 			}
 		}
 	}

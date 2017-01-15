@@ -31,12 +31,15 @@ string redis_getFileName(redisContext *context, long id) {
     string output(reply->str);
 
 	freeReplyObject(reply);
-    return output;
+    return output.substr(1,output.size()-2);
 }
 
 long redis_getFolderParentId(redisContext *context, long cwdId) {
 	redisReply *reply;
 	reply = (redisReply *) redisCommand(context, "HGET FOLDER_%lu_info parent", cwdId);
+	if(reply->str == NULL){
+		return -1;
+	}
 	long newId = strtol(reply->str, NULL, 10);
 	freeReplyObject(reply);
 	return newId;
@@ -45,6 +48,9 @@ long redis_getFolderParentId(redisContext *context, long cwdId) {
 long redis_getFileParentId(redisContext *context, long cwdId) {
 	redisReply *reply;
 	reply = (redisReply *) redisCommand(context, "HGET FILE_%lu_info parent", cwdId);
+	if(reply->str == NULL){
+		return -1;
+	}
 	long newId = strtol(reply->str, NULL, 10);
 	freeReplyObject(reply);
 	return newId;
@@ -105,7 +111,6 @@ vector<long> redis_getFileIds(redisContext *context, long id) {
 string redis_getFolderName(redisContext *context, long id) {
 	redisReply *reply;
 	reply = (redisReply *) redisCommand(context, "HGET FOLDER_%lu_info name", id);
-
     string output(reply->str);
 
 	freeReplyObject(reply);
@@ -155,5 +160,63 @@ void redis_setFolderParent(redisContext *context, long dirId, long newParent) {
 	freeReplyObject(reply);
 }
 
+
+void redis_mvFileToFolderWithRename(redisContext *context, const char *filePath, 
+	const char *targetFolderAbsolutePath, const char *newFileName)
+{
+	//atomically{
+		//unlink it
+		//change the name
+		//link it
+	//}
+}
+
+void redis_mvOverwriteFile(redisContext *context, const char *filePath, 
+	const char *targetFolderAbsolutePath)
+{
+	//check if the new file already exists
+	//if so overwrite
+	//
+	//else create
+	//
+}
+
+void redis_mvOverwriteFolder(redisContext *context, const char *filePath, 
+	const char *targetFolderAbsolutePath)
+{
+	//check if the new file already exists
+	//if so overwrite
+	//
+	//else create
+	//
+}
+
+void redis_getDirItemInfo()
+{
+	
+}
+
+long redis_findFileIdInFolder(redisContext *context, long folderId, const string filename)
+{
+
+}
+
+int redis_isFile(redisContext *context, long objId)
+{
+	redisReply *reply;
+	reply = (redisReply *) redisCommand(context, "EXISTS FILE_%lu_info", objId);
+	long newId = (int) reply->integer;
+	freeReplyObject(reply);
+	return newId;
+}
+
+int redis_isDirectory(redisContext *context, long objId)
+{
+	redisReply *reply;
+	reply = (redisReply *) redisCommand(context, "EXISTS FOLDER_%lu_info", objId);
+	long newId = (int) reply->integer;
+	freeReplyObject(reply);
+	return newId;
+}
 
 }

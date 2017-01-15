@@ -35,6 +35,8 @@ string redis_getFolderName(redisContext *context, long id);
 
 long redis_getFolderParentId(redisContext *context, long cwdId);
 
+long redis_getFileParentId(redisContext *context, long cwdId);
+
 void redis_setFolderParent(redisContext *context, long dirId, long newParent);
 
 string redis_ls(redisContext *context, long dirId);
@@ -42,6 +44,14 @@ string redis_ls(redisContext *context, long dirId);
 vector<Folder> redis_getFolders(redisContext *context, long id);
 
 vector<File> redis_getFiles(redisContext *context, long id);
+
+int redis_isDirectory(redisContext *context, long objId);
+
+int redis_isFile(redisContext *context, long objId);
+
+vector<long> redis_getFolderIds(redisContext *context, long id);
+
+vector<long> redis_getFileIds(redisContext *context, long id);
 
 }
 

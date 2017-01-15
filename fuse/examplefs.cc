@@ -54,7 +54,7 @@ int ExampleFS::Mknod(const char *path, mode_t mode, dev_t dev) {
 }
 
 int ExampleFS::Mkdir(const char *path, mode_t mode) {
-	printf("**mkdir(path=%s, mode=%d)\n", path, (int)mode);
+	printf("mkdir(path=%s, mode=%d)\n", path, (int)mode);
 	char fullPath[PATH_MAX];
 	AbsPath(fullPath, path);
 	return RETURN_ERRNO(mkdir(fullPath, mode));
@@ -212,17 +212,7 @@ int ExampleFS::Opendir(const char *path, struct fuse_file_info *fileInfo) {
 
 int ExampleFS::Readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fileInfo) {
 	printf("readdir(path=%s, offset=%d)\n", path, (int)offset);
-	DIR *dir = (DIR*)fileInfo->fh;
-	struct dirent *de = readdir(dir);
-	if(NULL == de) {
-		return -errno;
-	} else {
-		do {
-			if(filler(buf, de->d_name, NULL, 0) != 0) {
-				return -ENOMEM;
-			}
-		} while(NULL != (de = readdir(dir)));
-	}
+
 	return 0;
 }
 

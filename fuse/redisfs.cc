@@ -208,17 +208,25 @@ int RedisFs::Opendir(const char *path, struct fuse_file_info *fileInfo) {
 
 int RedisFs::Readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fileInfo) {
 	printf("readdir(path=%s, offset=%d)\n", path, (int)offset);
-	DIR *dir = (DIR*)fileInfo->fh;
-	struct dirent *de = readdir(dir);
-	if(NULL == de) {
-		return -errno;
-	} else {
-		do {
-			if(filler(buf, de->d_name, NULL, 0) != 0) {
-				return -ENOMEM;
-			}
-		} while(NULL != (de = readdir(dir)));
-	}
+	
+	//FIXME: check if isValidExistingFolder()
+
+	// auto files = listFiles(_context, path);
+
+	// auto folders = listFolders(_context, path);
+
+	// for (auto folder : folders){
+	// 	if(filler(buf, folder.name.c_str(), NULL, 0) != 0) {
+	// 		return -ENOMEM;
+	// 	}
+	// }
+
+	// for (auto file : files){
+	// 	if(filler(buf, file.name.c_str(), NULL, 0) != 0) {
+	// 		return -ENOMEM;
+	// 	}
+	// }
+
 	return 0;
 }
 

@@ -18,6 +18,7 @@ typedef enum command_t {
     command_mv,
     command_mkdir,
     command_mkfile,
+    command_stat,
     command_invalid
 } command_t;
 
@@ -36,6 +37,8 @@ command_t commandToEnum(string str)
         return command_mv;
     }else if(strcmp(str.c_str(), "mkdir") == 0){
         return command_mkdir;
+    }else if(strcmp(str.c_str(), "stat") == 0){
+        return command_stat;
     }else if(strcmp(str.c_str(), "mkfile") == 0){
         return command_mkfile;
     }
@@ -121,6 +124,43 @@ void handleCommand(vfs::FsContext &c, vector<string> strs){
                 return;
             }
             break;
+        case command_mv:
+            if (strs.size() < 3)
+            {
+                cout << "invalid mv args" << endl;
+                return;
+            }
+
+            if ( !vfs::mv(c, strs[1], strs[2]) )
+            {
+                cout << "failed to mv" << endl;
+                return;
+            }
+            break;
+        case command_stat:
+        {
+            if (strs.size() < 2)
+            {
+                cout << "invalid stat args" << endl;
+                return;
+            }
+
+            vfs::dirItemInfo fileInfo = vfs::stat(c, strs[1]);
+            if (!fileInfo.exists)
+            {
+                printf("that file doesn't exist");
+                return;
+            }
+
+            if (fileInfo.type == vfs::DIR_ITEM_FILE){
+                printf("it's a file: %s\n", fileInfo.name.c_str());
+            }else if (fileInfo.type == vfs::DIR_ITEM_FOLDER){
+                printf("it's a folder: %s\n", fileInfo.name.c_str());
+            }else{
+                printf("it's something else???\n");
+            }
+            break;
+        }
         default:
             printf("invalid command!\n");
             ;/*Empty*/

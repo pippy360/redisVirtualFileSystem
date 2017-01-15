@@ -46,6 +46,7 @@ long getFolderIdFromAbsolutePath(FsContext &context, const string absolutePath)
     return getDirIdFromPath(context, ROOT_FOLDER_ID, absolutePath);
 }
 
+
 long getCwdId(FsContext &context)
 {
     return getFolderIdFromAbsolutePath(context, context.cwd);
@@ -55,6 +56,21 @@ long getFolderIdFromPath(FsContext &context, const string path)
 {
     long cwd = getCwdId(context);
     return getDirIdFromPath(context, cwd, path);
+}
+
+long getFileIdFromPath(FsContext &context, const string path)
+{
+    long cwd = getCwdId(context);
+    vfsPathParserState_t parserState;
+    if( vfs_parsePath(&(context.context), &parserState, path.c_str(), path.size(), cwd) == -1 )
+    {
+        return -1;
+    }
+    if(!parserState.isFilePath){
+        return -1;
+    }
+
+    return parserState.id;
 }
 
 //throws exception for root
@@ -154,24 +170,22 @@ FsContext getInitialContext()
 	}
 
 	printf("building the database\n");
-	;
-	//vfs_buildDatabase(c);
+	if ( !isVirtualFileSystemCreated(c) ) {
+        vfs_buildDatabase(c);
+    }
     context.context = *c;
     return context;
 }
 
 vector<File> getFiles(FsContext &context, const string path)
 {
-    //get a list of ids
-
-    //get a folder for id
-
-    return vector<File>();
+    long id = getFolderIdFromPath(context, path);
+    return redis_getFiles(&(context.context), id);
 }
 
-vector<Folder> getFolders(FsContext &context, const string fullPath)
+vector<Folder> getFolders(FsContext &context, const string path)
 {
-    long id = getFolderIdFromPath(context, fullPath);
+    long id = getFolderIdFromPath(context, path);
     return redis_getFolders(&(context.context), id);
 }
 
@@ -244,9 +258,122 @@ bool createFile(FsContext &context, const string path)
     return true;
 }
 
+vector<long> listDirFileAndFolderIds(FsContext &context, long dirId){
+    vector<long> a = redis_getFolderIds(&(context.context), dirId);
+    vector<long> b = redis_getFileIds(&(context.context), dirId);
+    a.insert(end(a), begin(b), end(b));
+    return a;
+}
+
+dirItemInfo getDirItemInfo(FsContext &context, long objId){
+
+    dirItemInfo ret;
+    ret.id = -1;
+    ret.exists = false;
+
+    if( redis_isDirectory(&(context.context), objId) ){
+        ret.id = objId;
+        ret.exists = false;
+        ret.type = DIR_ITEM_FOLDER;
+        ret.parentId = redis_getFolderParentId(&(context.context), ret.id);
+        ret.name = redis_getFolderName(&(context.context), ret.id);
+    }else{
+        ret.id = objId;
+        ret.exists = false;
+        ret.type = DIR_ITEM_FILE;
+        ret.parentId = redis_getFileParentId(&(context.context), ret.id);
+        ret.name = redis_getFileName(&(context.context), ret.id);
+    }
+
+    return ret;
+}
+
+vector<dirItemInfo> ls_info(FsContext &context, long dirId){
+    vector<dirItemInfo> ret;
+    auto ids = listDirFileAndFolderIds(context, dirId);
+    for (auto id: ids)
+    {
+        dirItemInfo info = getDirItemInfo(context, id);
+        ret.push_back(info);
+    }
+    return ret;
+}
+
+vector<string> ls(FsContext &context, long dirId){
+    vector<string> ret;
+    auto ids = listDirFileAndFolderIds(context, dirId);
+    for (auto id: ids)
+    {
+        dirItemInfo info = getDirItemInfo(context, id);
+        ret.push_back(info.name);
+    }
+    return ret;
+}
+
+dirItemInfo getDirItemInfo(FsContext &context, const string absolutePath){
+
+    dirItemInfo ret;
+    ret.id = -1;
+    ret.exists = false;
+    
+    //look for a file using that path
+    if (absolutePath.back() != '/')
+    {
+        if ( (ret.id = getFileIdFromPath(context, absolutePath)) == -1 )
+        {
+            //set the errorno
+            //printf("Couldn't find a file by that name.\n");
+        }else{
+            ret.type = DIR_ITEM_FILE;
+        }
+    }else{
+        printf("skipped the check for a file id\n");
+    }
+
+    //look for a folder using that path
+    if (ret.id == -1)
+    {
+        if ( (ret.id = getFolderIdFromPath(context, absolutePath)) == -1 )
+        {
+            printf("Couldn't find a file or folder by that name.\n");
+            return ret;
+        }else{
+            ret.type = DIR_ITEM_FOLDER;
+        }
+    }
+
+    ret.exists = true;
+    if(ret.type == DIR_ITEM_FILE){
+        ret.name = redis_getFileName(&(context.context), ret.id);
+    }else{
+        ret.name = redis_getFolderName(&(context.context), ret.id);        
+    }    
+    return ret;
+}
+
+//converts relative path to absolute path
+
+
 bool mv(FsContext &context, const string oldPath, const string newPath)
 {
-    return false;
+    // long cwdId = getCwdId(context);
+    // if () {
+
+    // }
+    //validate and format the paths
+    //get the paths
+    //validate the path before the name 
+
+    //check the errorno
+    string oldValidatedAbsolutePath, newValidatedAbsolutePath;
+    
+    //then call
+    //redis_mvWithValidatedAbsolutePaths(&(context.context), oldValidatedAbsolutePath, newValidatedAbsolutePath)
+    return true;
+}
+
+dirItemInfo stat(FsContext &context, const string absolutePath){
+    return getDirItemInfo(context, absolutePath);
 }
 
 }

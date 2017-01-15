@@ -36,5 +36,4 @@ int vfs_parsePath(redisContext *context, vfsPathParserState_t *parserState,
 long vfs_getDirIdFromPath(redisContext *context, long userCwd, const char *path,
 		int pathLength);
 
-
 #endif /*VFSPATHPARSER_H*/
