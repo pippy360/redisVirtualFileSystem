@@ -16,7 +16,7 @@ bin/examplefs: bin obj/redisfs.o obj/wrap.o obj/main.o
 obj:
 	mkdir -p obj
 
-obj/redisfs.o: obj redisfs.cc redisfs.hpp
+obj/redisfs.o: obj examplefs.cc examplefs.hh
 	g++ -std=c++11 -g $(CFLAGS) -c redisfs.cc -o obj/redisfs.o
 
 obj/main.o: obj main.c wrap.hh
